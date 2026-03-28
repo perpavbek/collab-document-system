@@ -4,6 +4,7 @@ import kz.perpavbek.collab.userservice.dto.request.LoginRequest;
 import kz.perpavbek.collab.userservice.dto.request.RegisterRequest;
 import kz.perpavbek.collab.userservice.dto.response.AuthResponse;
 import kz.perpavbek.collab.userservice.entity.User;
+import kz.perpavbek.collab.userservice.enums.Role;
 import kz.perpavbek.collab.userservice.mapper.UserMapper;
 import kz.perpavbek.collab.userservice.repository.UserRepository;
 import kz.perpavbek.collab.userservice.security.JwtUtils;
@@ -25,11 +26,12 @@ public class UserService {
             throw new IllegalArgumentException("Email already in use");
         }
         User user = userMapper.toEntity(request);
+        user.setRole(Role.USER);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         userRepository.save(user);
 
-        String token = jwtUtils.generateToken(user.getEmail());
+        String token = jwtUtils.generateToken(user);
 
         return new AuthResponse(token);
     }
@@ -42,7 +44,7 @@ public class UserService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        String token = jwtUtils.generateToken(user.getEmail());
+        String token = jwtUtils.generateToken(user);
 
         return new AuthResponse(token);
     }
