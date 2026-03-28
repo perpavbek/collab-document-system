@@ -1,4 +1,4 @@
-package kz.perpavbek.collab.userservice;
+package kz.perpavbek.collab.userservice.repository;
 
 import kz.perpavbek.collab.userservice.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
