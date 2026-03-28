@@ -1,6 +1,7 @@
 package kz.perpavbek.collab.userservice.entity;
 
 import jakarta.persistence.*;
+import jakarta.ws.rs.DefaultValue;
 import kz.perpavbek.collab.userservice.enums.Role;
 import lombok.*;
 
