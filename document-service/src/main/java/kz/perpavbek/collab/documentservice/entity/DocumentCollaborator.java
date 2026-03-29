@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "document_collaborators")
+@Table(name = "document_collaborators",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"document_id", "user_id"})})
 @Data
 @Builder
 @NoArgsConstructor

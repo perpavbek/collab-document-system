@@ -1,0 +1,7 @@
+package kz.perpavbek.collab.documentservice.exception;
+
+public class AccessDeniedException extends RuntimeException {
+    public AccessDeniedException(String message) {
+        super(message);
+    }
+}
