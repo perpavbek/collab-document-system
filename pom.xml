@@ -21,6 +21,7 @@
         <module>api-gateway</module>
         <module>user-service</module>
         <module>document-service</module>
+        <module>version-control-service</module>
     </modules>
 
 </project>
