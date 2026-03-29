@@ -17,4 +17,5 @@ public interface DocumentCollaboratorRepository extends JpaRepository<DocumentCo
 
     Optional<DocumentCollaborator> findByDocumentIdAndUserId(UUID documentId, UUID userId);
 
+    void deleteByDocumentId(UUID documentId);
 }

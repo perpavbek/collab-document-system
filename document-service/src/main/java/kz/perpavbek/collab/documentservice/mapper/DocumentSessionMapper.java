@@ -2,11 +2,24 @@ package kz.perpavbek.collab.documentservice.mapper;
 
 import kz.perpavbek.collab.documentservice.dto.response.DocumentSessionResponse;
 import kz.perpavbek.collab.documentservice.entity.DocumentSession;
-import org.mapstruct.Mapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring", uses = DocumentCollaboratorMapper.class)
-public interface DocumentSessionMapper {
+@Component
+@RequiredArgsConstructor
+public class DocumentSessionMapper {
 
-    DocumentSessionResponse toResponse(DocumentSession session);
+    private final DocumentCollaboratorMapper documentCollaboratorMapper;
+
+    public DocumentSessionResponse toResponse(DocumentSession session){
+        if (session == null) return null;
+
+        return DocumentSessionResponse.builder()
+                .id(session.getId())
+                .collaborator(documentCollaboratorMapper.toResponse(session.getCollaborator()))
+                .connectedAt(session.getConnectedAt())
+                .lastActivityAt(session.getLastActivityAt())
+                .build();
+    }
 
 }
