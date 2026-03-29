@@ -20,6 +20,7 @@
         <module>discovery-server</module>
         <module>api-gateway</module>
         <module>user-service</module>
+        <module>document-service</module>
     </modules>
 
 </project>
