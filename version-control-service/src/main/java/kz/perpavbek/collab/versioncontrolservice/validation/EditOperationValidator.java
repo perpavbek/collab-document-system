@@ -11,7 +11,7 @@ public class EditOperationValidator
     public boolean isValid(EditOperationRequest value,
                            ConstraintValidatorContext context) {
         if (value == null || value.getType() == null) {
-            return true;
+            return false;
         }
 
         switch (value.getType()) {
