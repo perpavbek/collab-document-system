@@ -1,7 +1,7 @@
 package kz.perpavbek.collab.versioncontrolservice.service;
 
 import jakarta.transaction.Transactional;
-import kz.perpavbek.collab.versioncontrolservice.dto.request.DocumentEditMessageRequest;
+import kz.perpavbek.collab.versioncontrolservice.dto.request.EditOperationRequest;
 import kz.perpavbek.collab.versioncontrolservice.dto.response.EditOperationResponse;
 import kz.perpavbek.collab.versioncontrolservice.entity.DocumentSnapshot;
 import kz.perpavbek.collab.versioncontrolservice.entity.EditOperation;
@@ -45,12 +45,23 @@ public class VersionService {
 
         for (EditOperation op : operations) {
 
-            if (op.getType() == OperationType.INSERT) {
-                builder.insert(op.getPosition(), op.getContent());
-            }
+            switch (op.getType()) {
 
-            if (op.getType() == OperationType.DELETE) {
-                builder.delete(op.getPosition(), op.getPosition() + op.getContent().length());
+                case INSERT ->
+                        builder.insert(op.getPosition(), op.getContent());
+
+                case DELETE ->
+                        builder.delete(
+                                op.getPosition(),
+                                op.getPosition() + op.getLength()
+                        );
+
+                case REPLACE ->
+                        builder.replace(
+                                op.getPosition(),
+                                op.getPosition() + op.getLength(),
+                                op.getContent()
+                        );
             }
         }
 
@@ -58,24 +69,29 @@ public class VersionService {
     }
 
     @Transactional
-    public void saveOperation(DocumentEditMessageRequest message) {
+    public void saveOperation(EditOperationRequest request) {
+        int documentLength = getDocumentLength(request.getDocumentId());
+
+        if (request.getPosition() > documentLength) {
+            throw new IllegalArgumentException("Position exceeds document length");
+        }
+
+        if (request.getType() != OperationType.INSERT &&
+                request.getPosition() + request.getLength() > documentLength) {
+            throw new IllegalArgumentException("Operation exceeds document bounds");
+        }
 
         long nextSeq = editOperationRepository
-                .findTopByDocumentIdOrderBySequenceNumberDesc(message.getDocumentId())
+                .findTopByDocumentIdOrderBySequenceNumberDesc(request.getDocumentId())
                 .map(op -> op.getSequenceNumber() + 1)
                 .orElse(1L);
 
-        EditOperation operation = new EditOperation();
-        operation.setDocumentId(message.getDocumentId());
-        operation.setUserId(message.getUserId());
-        operation.setPosition(message.getPosition());
-        operation.setContent(message.getText());
-        operation.setType(message.getType());
+        EditOperation operation = editOperationMapper.toEntity(request);
         operation.setSequenceNumber(nextSeq);
 
         editOperationRepository.save(operation);
 
-        createSnapshotByThreshold(message.getDocumentId());
+        createSnapshotByThreshold(request.getDocumentId());
     }
 
     public List<EditOperationResponse> getOperationsAfter(UUID documentId, long sequenceNumber) {
@@ -121,5 +137,9 @@ public class VersionService {
         if (latestOperationSeq - lastSnapshotSeq >= SNAPSHOT_THRESHOLD) {
             createSnapshot(documentId);
         }
+    }
+
+    private int getDocumentLength(UUID documentId) {
+        return getFullDocument(documentId).length();
     }
 }

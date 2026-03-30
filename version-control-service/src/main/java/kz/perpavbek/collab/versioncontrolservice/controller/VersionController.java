@@ -1,6 +1,7 @@
 package kz.perpavbek.collab.versioncontrolservice.controller;
 
-import kz.perpavbek.collab.versioncontrolservice.dto.request.DocumentEditMessageRequest;
+import jakarta.validation.Valid;
+import kz.perpavbek.collab.versioncontrolservice.dto.request.EditOperationRequest;
 import kz.perpavbek.collab.versioncontrolservice.dto.response.EditOperationResponse;
 import kz.perpavbek.collab.versioncontrolservice.service.VersionService;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class VersionController {
     }
 
     @PostMapping("/operation")
-    public ResponseEntity saveOperation(@RequestBody DocumentEditMessageRequest request) {
+    public ResponseEntity saveOperation(@Valid @RequestBody EditOperationRequest request) {
         versionService.saveOperation(request);
         return ResponseEntity.ok().build();
     }

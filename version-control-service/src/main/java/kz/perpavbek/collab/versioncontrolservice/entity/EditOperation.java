@@ -35,6 +35,9 @@ public class EditOperation {
     @Column(nullable = false)
     private long sequenceNumber;
 
+    @Column
+    private Integer length;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
