@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.UUID;
 
 @Service
@@ -41,6 +42,7 @@ public class DocumentService {
                 .title(request.getTitle())
                 .ownerId(ownerId)
                 .versionSequenceNumber(1L)
+                .collaborators(new ArrayList<>())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

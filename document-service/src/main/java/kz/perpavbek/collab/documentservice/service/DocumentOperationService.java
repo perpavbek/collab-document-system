@@ -23,6 +23,7 @@ public class DocumentOperationService {
     private final DocumentRepository documentRepository;
     private final DocumentEventService eventService;
     private final JwtUtils jwtUtils;
+    private final DocumentSessionService documentSessionService;
 
     public OperationResponse applyEdit(OperationRequest request) {
 
@@ -39,6 +40,8 @@ public class DocumentOperationService {
         updateSequenceNumber(request.getDocumentId(), response.getSequenceNumber());
 
         eventService.sendDocumentUpdate(response);
+
+        documentSessionService.updateActivity(request.getDocumentId(), userId);
 
         return response;
     }

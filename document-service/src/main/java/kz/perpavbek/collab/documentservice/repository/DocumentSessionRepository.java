@@ -12,11 +12,11 @@ import java.util.UUID;
 @Repository
 public interface DocumentSessionRepository extends JpaRepository<DocumentSession, UUID> {
 
-    List<DocumentSession> findByCollaborator_DocumentId(UUID documentId);
+    List<DocumentSession> findByDocumentId(UUID documentId);
 
-    boolean existsByCollaborator(DocumentCollaborator collaborator);
+    List<DocumentSession> findByDocumentIdAndUserId(UUID documentId, UUID userId);
 
-    Optional<DocumentSession> findByCollaborator(DocumentCollaborator collaborator);
+    Optional<DocumentSession> findByWebsocketSessionId(String websocketSessionId);
 
-    void deleteByCollaborator(DocumentCollaborator collaborator);
+    void deleteByWebsocketSessionId(String websocketSessionId);
 }

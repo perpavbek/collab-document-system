@@ -7,8 +7,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "document_sessions",
-        uniqueConstraints = {@UniqueConstraint(columnNames = {"collaborator_id"})})
+@Table(name = "document_sessions")
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,14 +18,18 @@ public class DocumentSession {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "collaborator_id", nullable = false)
-    private DocumentCollaborator collaborator;
+    @Column(nullable = false)
+    private UUID documentId;
+
+    @Column(nullable = false)
+    private UUID userId;
+
+    @Column(nullable = false)
+    private String websocketSessionId;
 
     @Column(nullable = false)
     private LocalDateTime connectedAt;
 
-    @Column
+    @Column(nullable = false)
     private LocalDateTime lastActivityAt;
-
 }
