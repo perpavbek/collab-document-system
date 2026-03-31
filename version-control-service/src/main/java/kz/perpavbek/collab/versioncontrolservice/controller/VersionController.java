@@ -17,12 +17,12 @@ public class VersionController {
 
     private final VersionService versionService;
 
-    @GetMapping("/id/{documentId}/full")
+    @GetMapping("/document/id/{documentId}/full")
     public ResponseEntity<String> getFullDocument(@PathVariable UUID documentId) {
         return ResponseEntity.ok(versionService.getFullDocument(documentId));
     }
 
-    @GetMapping("/id/{documentId}/operations")
+    @GetMapping("/document/id/{documentId}/operations")
     public ResponseEntity<List<EditOperationResponse>> getOperations(
             @PathVariable UUID documentId,
             @RequestParam(defaultValue = "0") long after
@@ -30,7 +30,7 @@ public class VersionController {
         return ResponseEntity.ok(versionService.getOperationsAfter(documentId, after));
     }
 
-    @PostMapping("/operation")
+    @PostMapping("/operations")
     public ResponseEntity saveOperation(@Valid @RequestBody EditOperationRequest request) {
         versionService.saveOperation(request);
         return ResponseEntity.ok().build();
