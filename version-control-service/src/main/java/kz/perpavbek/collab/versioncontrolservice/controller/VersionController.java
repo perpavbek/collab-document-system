@@ -1,7 +1,5 @@
 package kz.perpavbek.collab.versioncontrolservice.controller;
 
-import jakarta.validation.Valid;
-import kz.perpavbek.collab.versioncontrolservice.dto.request.EditOperationRequest;
 import kz.perpavbek.collab.versioncontrolservice.dto.response.EditOperationResponse;
 import kz.perpavbek.collab.versioncontrolservice.service.VersionService;
 import lombok.RequiredArgsConstructor;
@@ -35,23 +33,5 @@ public class VersionController {
         return ResponseEntity.ok(
                 versionService.getOperationsAfter(documentId, after)
         );
-    }
-
-    @PostMapping("/operations")
-    public ResponseEntity<EditOperationResponse> saveOperation(
-            @Valid @RequestBody EditOperationRequest request) {
-
-        return ResponseEntity.ok(
-                versionService.saveOperation(request)
-        );
-    }
-
-    @DeleteMapping("/{documentId}/history")
-    public ResponseEntity<Void> deleteDocumentHistory(
-            @PathVariable UUID documentId) {
-
-        versionService.deleteDocumentHistory(documentId);
-
-        return ResponseEntity.noContent().build();
     }
 }

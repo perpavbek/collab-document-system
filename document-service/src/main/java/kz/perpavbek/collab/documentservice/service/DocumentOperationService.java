@@ -1,5 +1,6 @@
 package kz.perpavbek.collab.documentservice.service;
 
+import feign.FeignException;
 import jakarta.transaction.Transactional;
 import kz.perpavbek.collab.documentservice.client.VersionControlClient;
 import kz.perpavbek.collab.documentservice.dto.client.OperationRequest;
@@ -35,7 +36,13 @@ public class DocumentOperationService {
             throw new AccessDeniedException("User cannot edit this document");
         }
 
-        OperationResponse response = versionControlClient.saveOperation(request);
+        OperationResponse response;
+
+        try{
+            response = versionControlClient.saveOperation(request);
+        } catch (FeignException.BadRequest e){
+            throw new IllegalArgumentException(e.getMessage());
+        }
 
         updateSequenceNumber(request.getDocumentId(), response.getSequenceNumber());
 

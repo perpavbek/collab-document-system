@@ -12,9 +12,9 @@ import java.util.UUID;
 
 @FeignClient("version-control-service")
 public interface VersionControlClient {
-    @PostMapping("/documents/operations")
+    @PostMapping("/internal/documents/operations")
     OperationResponse saveOperation(@RequestBody OperationRequest operation);
 
-    @DeleteMapping("/documents/{documentId}/history")
+    @DeleteMapping("/internal/documents/{documentId}/history")
     void deleteDocumentVersions(@PathVariable UUID documentId);
 }
