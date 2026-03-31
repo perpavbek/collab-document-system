@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient("version-control-service")
 public interface VersionControlClient {
-    @PostMapping("/operations")
+    @PostMapping("/documents/operations")
     OperationResponse saveOperation(@RequestBody OperationRequest operation);
 }

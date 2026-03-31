@@ -17,4 +17,6 @@ public interface EditOperationRepository extends JpaRepository<EditOperation, UU
     );
 
     Optional<EditOperation> findTopByDocumentIdOrderBySequenceNumberDesc(UUID documentId);
+
+    void deleteByDocumentId(UUID documentId);
 }
