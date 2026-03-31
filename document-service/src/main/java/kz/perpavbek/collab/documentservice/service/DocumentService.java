@@ -44,12 +44,11 @@ public class DocumentService {
                 .title(request.getTitle())
                 .ownerId(ownerId)
                 .versionSequenceNumber(1L)
-                .collaborators(new ArrayList<>())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        document.getCollaborators().addAll(
+        document.setCollaborators(
                 request.getCollaboratorIds().stream()
                         .map(id -> createCollaborator(document, id))
                         .toList()
