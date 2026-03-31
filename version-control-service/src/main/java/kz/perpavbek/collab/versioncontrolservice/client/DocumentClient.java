@@ -9,6 +9,6 @@ import java.util.UUID;
 
 @FeignClient(name = "document-service")
 public interface DocumentClient {
-    @GetMapping("/id/{documentId}/permission")
+    @GetMapping("/{documentId}/permission")
     PermissionResponse getPermission(@PathVariable UUID documentId);
 }
