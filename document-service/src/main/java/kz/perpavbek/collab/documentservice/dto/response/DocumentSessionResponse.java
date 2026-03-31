@@ -10,6 +10,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class DocumentSessionResponse {
 
+    private UUID documentId;
     private UUID userId;
     private LocalDateTime connectedAt;
     private LocalDateTime lastActivityAt;

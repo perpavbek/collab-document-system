@@ -60,6 +60,7 @@ public class DocumentSessionService {
                         .userId(session.getUserId())
                         .connectedAt(session.getConnectedAt())
                         .lastActivityAt(session.getLastActivityAt())
+                        .documentId(documentId)
                         .build())
                 .toList();
     }
