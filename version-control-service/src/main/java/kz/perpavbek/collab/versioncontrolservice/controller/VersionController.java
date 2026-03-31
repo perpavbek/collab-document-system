@@ -31,8 +31,8 @@ public class VersionController {
     }
 
     @PostMapping("/operations")
-    public ResponseEntity saveOperation(@Valid @RequestBody EditOperationRequest request) {
-        versionService.saveOperation(request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<EditOperationResponse> saveOperation(@Valid @RequestBody EditOperationRequest request) {
+        System.out.println(request.getContent());
+        return ResponseEntity.ok(versionService.saveOperation(request));
     }
 }

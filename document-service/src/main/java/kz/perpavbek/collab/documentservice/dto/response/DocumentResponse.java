@@ -15,7 +15,7 @@ public class DocumentResponse {
     private UUID id;
     private String title;
     private UUID ownerId;
-    private UUID currentVersionId;
+    private Long versionSequenceNumber;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

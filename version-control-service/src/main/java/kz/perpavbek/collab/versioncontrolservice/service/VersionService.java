@@ -1,17 +1,23 @@
 package kz.perpavbek.collab.versioncontrolservice.service;
 
 import jakarta.transaction.Transactional;
+import kz.perpavbek.collab.versioncontrolservice.client.DocumentClient;
+import kz.perpavbek.collab.versioncontrolservice.dto.client.PermissionResponse;
 import kz.perpavbek.collab.versioncontrolservice.dto.request.EditOperationRequest;
 import kz.perpavbek.collab.versioncontrolservice.dto.response.EditOperationResponse;
 import kz.perpavbek.collab.versioncontrolservice.entity.DocumentSnapshot;
 import kz.perpavbek.collab.versioncontrolservice.entity.EditOperation;
+import kz.perpavbek.collab.versioncontrolservice.enums.CollaboratorRole;
 import kz.perpavbek.collab.versioncontrolservice.enums.OperationType;
+import kz.perpavbek.collab.versioncontrolservice.exception.AccessDeniedException;
 import kz.perpavbek.collab.versioncontrolservice.mapper.EditOperationMapper;
 import kz.perpavbek.collab.versioncontrolservice.repository.DocumentSnapshotRepository;
 import kz.perpavbek.collab.versioncontrolservice.repository.EditOperationRepository;
+import kz.perpavbek.collab.versioncontrolservice.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,8 +30,10 @@ public class VersionService {
     private final DocumentSnapshotRepository documentSnapshotRepository;
     private final EditOperationRepository editOperationRepository;
     private final EditOperationMapper editOperationMapper;
+    private final DocumentClient documentClient;
+    private final JwtUtils jwtUtils;
 
-    public String getFullDocument(UUID documentId) {
+    public String buildDocument(UUID documentId) {
 
         DocumentSnapshot snapshot = documentSnapshotRepository
                 .findTopByDocumentIdOrderByLastOperationSequenceDesc(documentId)
@@ -68,8 +76,15 @@ public class VersionService {
         return builder.toString();
     }
 
+    public String getFullDocument(UUID documentId) {
+        checkAccess(documentId, CollaboratorRole.OWNER, CollaboratorRole.VIEWER, CollaboratorRole.EDITOR);
+        return buildDocument(documentId);
+    }
+
     @Transactional
-    public void saveOperation(EditOperationRequest request) {
+    public EditOperation save(EditOperationRequest request) {
+        UUID userId = jwtUtils.getIdFromToken(jwtUtils.getCurrentToken());
+
         int documentLength = getDocumentLength(request.getDocumentId());
 
         if (request.getPosition() > documentLength) {
@@ -87,14 +102,18 @@ public class VersionService {
                 .orElse(1L);
 
         EditOperation operation = editOperationMapper.toEntity(request);
+        operation.setUserId(userId);
         operation.setSequenceNumber(nextSeq);
 
-        editOperationRepository.save(operation);
+        EditOperation savedEditOperation = editOperationRepository.save(operation);
 
         createSnapshotByThreshold(request.getDocumentId());
+
+        return savedEditOperation;
     }
 
     public List<EditOperationResponse> getOperationsAfter(UUID documentId, long sequenceNumber) {
+        checkAccess(documentId, CollaboratorRole.OWNER, CollaboratorRole.VIEWER, CollaboratorRole.EDITOR);
         List<EditOperation> operations =
                 editOperationRepository
                         .findByDocumentIdAndSequenceNumberGreaterThanOrderBySequenceNumberAsc(
@@ -122,6 +141,11 @@ public class VersionService {
         documentSnapshotRepository.save(snapshot);
     }
 
+    public EditOperationResponse saveOperation(EditOperationRequest request) {
+        checkAccess(request.getDocumentId(), CollaboratorRole.OWNER, CollaboratorRole.EDITOR);
+        return editOperationMapper.toResponse(save(request));
+    }
+
     private void createSnapshotByThreshold(UUID documentId) {
 
         long lastSnapshotSeq = documentSnapshotRepository
@@ -141,5 +165,13 @@ public class VersionService {
 
     private int getDocumentLength(UUID documentId) {
         return getFullDocument(documentId).length();
+    }
+
+    public void checkAccess(UUID documentId, CollaboratorRole... allowedRoles) {
+        PermissionResponse permission = documentClient.getPermission(documentId);
+        if (permission.getRole() == null || Arrays.stream(allowedRoles)
+                .noneMatch(r -> r.equals(permission.getRole()))) {
+            throw new AccessDeniedException("User has no access to this document");
+        }
     }
 }

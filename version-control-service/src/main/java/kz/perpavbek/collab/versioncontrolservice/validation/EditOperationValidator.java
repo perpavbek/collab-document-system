@@ -27,7 +27,7 @@ public class EditOperationValidator
 
         switch (value.getType()) {
             case INSERT:
-                if (value.getContent() == null || value.getContent().isBlank()) {
+                if (value.getContent() == null){
                     context.disableDefaultConstraintViolation();
                     context.buildConstraintViolationWithTemplate("INSERT operation must have non-empty content")
                             .addConstraintViolation();

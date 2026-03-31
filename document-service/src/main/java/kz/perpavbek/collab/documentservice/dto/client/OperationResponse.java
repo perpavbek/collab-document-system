@@ -1,12 +1,12 @@
-package kz.perpavbek.collab.versioncontrolservice.dto.response;
+package kz.perpavbek.collab.documentservice.dto.client;
 
-import kz.perpavbek.collab.versioncontrolservice.enums.OperationType;
+import kz.perpavbek.collab.documentservice.enums.OperationType;
 import lombok.Data;
 
 import java.util.UUID;
 
 @Data
-public class EditOperationResponse {
+public class OperationResponse {
     private UUID documentId;
     private UUID userId;
     private int position;

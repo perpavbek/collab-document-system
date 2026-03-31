@@ -27,7 +27,7 @@ public class Document {
     private UUID ownerId;
 
     @Column
-    private UUID currentVersionId;
+    private Long versionSequenceNumber;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

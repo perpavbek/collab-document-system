@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import kz.perpavbek.collab.versioncontrolservice.enums.OperationType;
 import kz.perpavbek.collab.versioncontrolservice.validation.ValidEditOperation;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,9 +18,6 @@ public class EditOperationRequest {
 
     @NotNull(message = "documentId is required")
     private UUID documentId;
-
-    @NotNull(message = "userId is required")
-    private UUID userId;
 
     @Min(value = 0, message = "position must be >= 0")
     private int position;
