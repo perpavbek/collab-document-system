@@ -1,5 +1,6 @@
 package kz.perpavbek.collab.documentservice.service;
 
+import kz.perpavbek.collab.documentservice.client.VersionControlClient;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentCreateRequest;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentUpdateRequest;
 import kz.perpavbek.collab.documentservice.dto.response.DocumentResponse;
@@ -24,6 +25,9 @@ class DocumentServiceTest {
 
     @Mock
     private DocumentRepository documentRepository;
+
+    @Mock
+    private VersionControlClient versionControlClient;
 
     @Mock
     private DocumentMapper documentMapper;
@@ -128,14 +132,16 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deleteDocument_success() {
-        Document doc = Document.builder().id(documentId).build();
-        when(accessService.getDocumentOrThrow(documentId)).thenReturn(doc);
-        doNothing().when(accessService).checkPermission(doc);
+    void deleteDocument_shouldCallVersionControlAndDeleteDocument() {
+        UUID documentId = UUID.randomUUID();
+        Document document = Document.builder().id(documentId).ownerId(ownerId).build();
+
+        when(accessService.getDocumentOrThrow(documentId)).thenReturn(document);
 
         documentService.deleteDocument(documentId);
 
-        verify(documentRepository).delete(doc);
+        verify(versionControlClient).deleteDocumentVersions(documentId);
+        verify(documentRepository).delete(document);
     }
 
     @Test

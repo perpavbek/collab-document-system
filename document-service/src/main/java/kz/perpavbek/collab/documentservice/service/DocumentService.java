@@ -1,6 +1,7 @@
 package kz.perpavbek.collab.documentservice.service;
 
 import jakarta.transaction.Transactional;
+import kz.perpavbek.collab.documentservice.client.VersionControlClient;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentCreateRequest;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentUpdateRequest;
 import kz.perpavbek.collab.documentservice.dto.response.DocumentResponse;
@@ -29,6 +30,7 @@ public class DocumentService {
     private final DocumentAccessService documentAccessService;
     private final UserValidationService userValidationService;
     private final JwtUtils jwtUtils;
+    private final VersionControlClient versionControlClient;
 
     @Transactional
     public DocumentResponse createDocument(DocumentCreateRequest request) {
@@ -100,7 +102,9 @@ public class DocumentService {
 
         Document document = documentAccessService.getDocumentOrThrow(documentId);
 
-        documentAccessService.checkPermission(document);
+        documentAccessService.checkPermission(document,  Role.OWNER);
+
+        versionControlClient.deleteDocumentVersions(documentId);
 
         documentRepository.delete(document);
     }
