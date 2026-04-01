@@ -18,5 +18,9 @@ public interface EditOperationRepository extends JpaRepository<EditOperation, UU
 
     Optional<EditOperation> findTopByDocumentIdOrderBySequenceNumberDesc(UUID documentId);
 
+    List<EditOperation> findByDocumentIdAndSequenceNumberGreaterThanAndSequenceNumberLessThanEqualOrderBySequenceNumberAsc(UUID documentId, long sequenceNumber, long sequenceNumber2);
+
+    void deleteByDocumentIdAndSequenceNumberGreaterThan(UUID documentId, long sequenceNumber);
+
     void deleteByDocumentId(UUID documentId);
 }

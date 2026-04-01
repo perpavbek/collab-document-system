@@ -20,11 +20,6 @@ public class DocumentAccessService {
     private final DocumentRepository documentRepository;
     private final JwtUtils jwtUtils;
 
-    public Document getDocumentOrThrow(UUID id) {
-        return documentRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Document not found"));
-    }
-
     public void checkPermission(Document document, Role... allowedRoles) {
 
         UUID userId = jwtUtils.getIdFromToken(jwtUtils.getCurrentToken());
@@ -44,7 +39,8 @@ public class DocumentAccessService {
 
     public Role getUserRole(UUID documentId, UUID userId) {
 
-        Document document = getDocumentOrThrow(documentId);
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new NotFoundException("Document not found"));
 
         if (document.getOwnerId().equals(userId)) {
             return Role.OWNER;

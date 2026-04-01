@@ -1,6 +1,7 @@
 package kz.perpavbek.collab.versioncontrolservice.controller;
 
 import kz.perpavbek.collab.versioncontrolservice.dto.request.EditOperationRequest;
+import kz.perpavbek.collab.versioncontrolservice.dto.request.RollbackRequest;
 import kz.perpavbek.collab.versioncontrolservice.dto.response.EditOperationResponse;
 import kz.perpavbek.collab.versioncontrolservice.service.VersionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,25 @@ class InternalControllerTest {
         assertEquals(response, result.getBody());
 
         verify(versionService).saveOperation(request);
+    }
+
+    @Test
+    void rollback_shouldCallService() {
+
+        UUID documentId = UUID.randomUUID();
+        long targetSeq = 10;
+
+        RollbackRequest request = new RollbackRequest();
+        request.setDocumentId(documentId);
+        request.setTargetSequence(targetSeq);
+
+        ResponseEntity<Void> result =
+                internalController.rollback(request);
+
+        assertEquals(200, result.getStatusCode().value());
+
+        verify(versionService)
+                .rollbackDocument(documentId, targetSeq);
     }
 
     @Test

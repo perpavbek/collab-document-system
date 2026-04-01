@@ -18,25 +18,46 @@ public class SnapshotService {
 
     private final DocumentSnapshotRepository snapshotRepository;
     private final EditOperationRepository operationRepository;
-    private final DocumentContentService contentService;
+    private final DocumentBuilderService documentBuilderService;
 
     @Transactional
     public void createSnapshot(UUID documentId) {
-
-        String content = contentService.buildDocument(documentId);
 
         long lastSeq = operationRepository
                 .findTopByDocumentIdOrderBySequenceNumberDesc(documentId)
                 .map(EditOperation::getSequenceNumber)
                 .orElse(0L);
 
-        DocumentSnapshot snapshot = new DocumentSnapshot();
+        DocumentSnapshot prevSnapshot = snapshotRepository.findTopByDocumentIdAndLastOperationSequenceLessThanEqualOrderByLastOperationSequenceDesc(documentId, lastSeq).orElse(null);
 
+        String content = documentBuilderService.buildDocument(
+                documentId,
+                prevSnapshot,
+                lastSeq
+        );
+
+        DocumentSnapshot snapshot = new DocumentSnapshot();
         snapshot.setDocumentId(documentId);
         snapshot.setContent(content);
         snapshot.setLastOperationSequence(lastSeq);
 
         snapshotRepository.save(snapshot);
+    }
+
+    @Transactional
+    public void createSnapshot(UUID documentId, String content, long lastSeq) {
+        DocumentSnapshot snapshot = new DocumentSnapshot();
+        snapshot.setDocumentId(documentId);
+        snapshot.setContent(content);
+        snapshot.setLastOperationSequence(lastSeq);
+        snapshotRepository.save(snapshot);
+    }
+
+    @Transactional
+    public DocumentSnapshot findSnapshotBeforeOrAt(UUID documentId, long sequenceNumber) {
+        return snapshotRepository
+                .findTopByDocumentIdAndLastOperationSequenceLessThanEqualOrderByLastOperationSequenceDesc(documentId, sequenceNumber)
+                .orElse(null);
     }
 
     public void createSnapshotIfNeeded(UUID documentId) {

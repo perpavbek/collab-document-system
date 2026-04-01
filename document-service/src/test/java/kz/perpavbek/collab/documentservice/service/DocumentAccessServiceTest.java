@@ -28,6 +28,9 @@ class DocumentAccessServiceTest {
     @Mock
     private JwtUtils jwtUtils;
 
+    @Mock
+    private DocumentService documentService;
+
     @InjectMocks
     private DocumentAccessService accessService;
 
@@ -39,12 +42,6 @@ class DocumentAccessServiceTest {
         MockitoAnnotations.openMocks(this);
         userId = UUID.randomUUID();
         docId = UUID.randomUUID();
-    }
-
-    @Test
-    void getDocumentOrThrow_notFound_shouldThrow() {
-        when(documentRepository.findById(docId)).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> accessService.getDocumentOrThrow(docId));
     }
 
     @Test
@@ -82,5 +79,19 @@ class DocumentAccessServiceTest {
         when(documentRepository.findById(docId)).thenReturn(Optional.of(doc));
 
         assertEquals(Role.OWNER, accessService.getUserRole(docId, userId));
+    }
+
+    @Test
+    void getUserRole_collaborator_shouldReturnRole() {
+        UUID ownerId = UUID.randomUUID();
+        DocumentCollaborator collab = DocumentCollaborator.builder()
+                .userId(userId)
+                .role(Role.EDITOR)
+                .build();
+        Document doc = Document.builder().ownerId(ownerId).collaborators(List.of(collab)).build();
+
+        when(documentRepository.findById(docId)).thenReturn(Optional.of(doc));
+
+        assertEquals(Role.EDITOR, accessService.getUserRole(docId, userId));
     }
 }

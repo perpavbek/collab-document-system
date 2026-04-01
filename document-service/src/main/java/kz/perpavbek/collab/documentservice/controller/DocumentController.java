@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import kz.perpavbek.collab.documentservice.dto.client.OperationRequest;
 import kz.perpavbek.collab.documentservice.dto.client.OperationResponse;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentCreateRequest;
+import kz.perpavbek.collab.documentservice.dto.request.DocumentRollbackRequest;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentUpdateRequest;
 import kz.perpavbek.collab.documentservice.dto.response.DocumentResponse;
 import kz.perpavbek.collab.documentservice.dto.response.PageResponse;
@@ -49,6 +50,19 @@ public class DocumentController {
     public ResponseEntity<DocumentResponse> getDocument(@PathVariable UUID id) {
 
         return ResponseEntity.ok(documentService.getDocument(id));
+    }
+
+    @PostMapping("/{id}/rollback")
+    public ResponseEntity<Void> rollbackDocument(
+            @PathVariable UUID id,
+            @RequestBody DocumentRollbackRequest request) {
+
+        documentOperationService.rollbackDocument(
+                id,
+                request.getTargetSequence()
+        );
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}/permission")

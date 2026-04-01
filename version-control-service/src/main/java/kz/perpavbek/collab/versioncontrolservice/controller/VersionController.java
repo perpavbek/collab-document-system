@@ -1,5 +1,6 @@
 package kz.perpavbek.collab.versioncontrolservice.controller;
 
+import kz.perpavbek.collab.versioncontrolservice.dto.response.DocumentVersionResponse;
 import kz.perpavbek.collab.versioncontrolservice.dto.response.EditOperationResponse;
 import kz.perpavbek.collab.versioncontrolservice.service.VersionService;
 import lombok.RequiredArgsConstructor;
@@ -33,5 +34,13 @@ public class VersionController {
         return ResponseEntity.ok(
                 versionService.getOperationsAfter(documentId, after)
         );
+    }
+
+    @GetMapping("/{documentId}/version/{seq}")
+    public ResponseEntity<DocumentVersionResponse> getDocumentAtVersion(
+            @PathVariable UUID documentId,
+            @PathVariable long seq
+    ) {
+        return ResponseEntity.ok(versionService.getDocumentAtVersion(documentId, seq));
     }
 }

@@ -22,54 +22,39 @@ import static org.mockito.Mockito.*;
 class DocumentContentServiceTest {
 
     @Mock
-    private DocumentSnapshotRepository snapshotRepository;
-
-    @Mock
     private EditOperationRepository operationRepository;
 
+    @Mock
+    private SnapshotService snapshotService;
+
+    @Mock
+    private DocumentBuilderService documentBuilderService;
+
     @InjectMocks
-    private DocumentContentService service;
+    private DocumentContentService contentService;
 
     @Test
     void shouldBuildDocument() {
-
         UUID docId = UUID.randomUUID();
-
         DocumentSnapshot snapshot = new DocumentSnapshot();
         snapshot.setContent("Hello");
         snapshot.setLastOperationSequence(1);
 
-        EditOperation op = new EditOperation();
-        op.setType(OperationType.INSERT);
-        op.setPosition(5);
-        op.setContent(" World");
+        when(snapshotService.findSnapshotBeforeOrAt(docId, 2L)).thenReturn(snapshot);
+        when(documentBuilderService.buildDocument(docId, snapshot, 2L)).thenReturn("Hello World");
 
-        when(snapshotRepository
-                .findTopByDocumentIdOrderByLastOperationSequenceDesc(docId))
-                .thenReturn(Optional.of(snapshot));
-
-        when(operationRepository
-                .findByDocumentIdAndSequenceNumberGreaterThanOrderBySequenceNumberAsc(docId,1))
-                .thenReturn(List.of(op));
-
-        String result = service.buildDocument(docId);
+        String result = contentService.buildDocumentBySequenceNumber(docId, 2L);
 
         assertEquals("Hello World", result);
     }
 
     @Test
-    void shouldReturnLength() {
-
+    void shouldReturnDocumentLength() {
         UUID docId = UUID.randomUUID();
 
-        when(snapshotRepository
-                .findTopByDocumentIdOrderByLastOperationSequenceDesc(docId))
-                .thenReturn(Optional.empty());
+        when(documentBuilderService.buildDocument(docId, null, 0L)).thenReturn("Hello");
+        when(operationRepository.findTopByDocumentIdOrderBySequenceNumberDesc(docId)).thenReturn(Optional.empty());
 
-        when(operationRepository
-                .findByDocumentIdAndSequenceNumberGreaterThanOrderBySequenceNumberAsc(docId,0))
-                .thenReturn(List.of());
-
-        assertEquals(0, service.getDocumentLength(docId));
+        assertEquals(5, contentService.getDocumentLength(docId));
     }
 }

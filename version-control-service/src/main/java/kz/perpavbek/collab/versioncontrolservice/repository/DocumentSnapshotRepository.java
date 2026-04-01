@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface DocumentSnapshotRepository extends JpaRepository<DocumentSnapshot, UUID> {
     void deleteByDocumentId(UUID documentId);
-
+    Optional<DocumentSnapshot> findTopByDocumentIdAndLastOperationSequenceLessThanEqualOrderByLastOperationSequenceDesc(UUID documentId, long sequenceNumber);
     Optional<DocumentSnapshot> findTopByDocumentIdOrderByLastOperationSequenceDesc(UUID documentId);
 }

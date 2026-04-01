@@ -8,6 +8,7 @@ import kz.perpavbek.collab.documentservice.dto.response.DocumentResponse;
 import kz.perpavbek.collab.documentservice.entity.Document;
 import kz.perpavbek.collab.documentservice.entity.DocumentCollaborator;
 import kz.perpavbek.collab.documentservice.enums.Role;
+import kz.perpavbek.collab.documentservice.exception.NotFoundException;
 import kz.perpavbek.collab.documentservice.mapper.DocumentMapper;
 import kz.perpavbek.collab.documentservice.repository.DocumentRepository;
 import kz.perpavbek.collab.documentservice.security.JwtUtils;
@@ -18,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.UUID;
 
 @Service
@@ -60,7 +60,7 @@ public class DocumentService {
     @Transactional
     public DocumentResponse getDocument(UUID documentId) {
 
-        Document document = documentAccessService.getDocumentOrThrow(documentId);
+        Document document = getDocumentOrThrow(documentId);
 
         documentAccessService.checkPermission(document, Role.EDITOR, Role.VIEWER);
 
@@ -70,7 +70,7 @@ public class DocumentService {
     @Transactional
     public DocumentResponse updateDocumentMeta(UUID documentId, DocumentUpdateRequest request) {
 
-        Document document = documentAccessService.getDocumentOrThrow(documentId);
+        Document document = getDocumentOrThrow(documentId);
 
         documentAccessService.checkPermission(document, Role.EDITOR);
 
@@ -99,13 +99,18 @@ public class DocumentService {
     @Transactional
     public void deleteDocument(UUID documentId) {
 
-        Document document = documentAccessService.getDocumentOrThrow(documentId);
+        Document document = getDocumentOrThrow(documentId);
 
         documentAccessService.checkPermission(document,  Role.OWNER);
 
         versionControlClient.deleteDocumentVersions(documentId);
 
         documentRepository.delete(document);
+    }
+
+    public Document getDocumentOrThrow(UUID id) {
+        return documentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Document not found"));
     }
 
     @Transactional

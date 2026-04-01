@@ -28,13 +28,16 @@ class DocumentOperationServiceTest {
     private DocumentAccessService accessService;
 
     @Mock
+    private JwtUtils jwtUtils;
+
+    @Mock
+    private DocumentService documentService;
+
+    @Mock
     private DocumentRepository documentRepository;
 
     @Mock
-    private DocumentEventService eventService;
-
-    @Mock
-    private JwtUtils jwtUtils;
+    private DocumentEventService documentEventService;
 
     @Mock
     private DocumentSessionService documentSessionService;
@@ -72,7 +75,7 @@ class DocumentOperationServiceTest {
         when(jwtUtils.getIdFromToken("token")).thenReturn(userId);
         when(accessService.getUserRole(docId, userId)).thenReturn(Role.EDITOR);
         when(versionControlClient.saveOperation(request)).thenReturn(response);
-        when(accessService.getDocumentOrThrow(docId)).thenReturn(new Document());
+        when(documentService.getDocumentOrThrow(docId)).thenReturn(new Document());
 
         OperationResponse result = operationService.applyEdit(request);
 

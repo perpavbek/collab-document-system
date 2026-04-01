@@ -1,5 +1,6 @@
 package kz.perpavbek.collab.versioncontrolservice.controller;
 
+import kz.perpavbek.collab.versioncontrolservice.dto.response.DocumentVersionResponse;
 import kz.perpavbek.collab.versioncontrolservice.dto.response.EditOperationResponse;
 import kz.perpavbek.collab.versioncontrolservice.service.VersionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,5 +64,30 @@ class VersionControllerTest {
         assertEquals(operations, result.getBody());
 
         verify(versionService).getOperationsAfter(documentId, 0);
+    }
+
+    @Test
+    void getDocumentAtVersion_shouldReturnDocumentVersion() {
+
+        UUID documentId = UUID.randomUUID();
+        long seq = 5;
+
+        DocumentVersionResponse response =
+                DocumentVersionResponse.builder()
+                        .content("test")
+                        .sequenceNumber(seq)
+                        .build();
+
+        when(versionService.getDocumentAtVersion(documentId, seq))
+                .thenReturn(response);
+
+        ResponseEntity<DocumentVersionResponse> result =
+                versionController.getDocumentAtVersion(documentId, seq);
+
+        assertEquals(200, result.getStatusCode().value());
+        assertEquals(response, result.getBody());
+
+        verify(versionService)
+                .getDocumentAtVersion(documentId, seq);
     }
 }

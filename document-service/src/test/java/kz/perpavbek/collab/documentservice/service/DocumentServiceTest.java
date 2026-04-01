@@ -6,9 +6,10 @@ import kz.perpavbek.collab.documentservice.dto.request.DocumentUpdateRequest;
 import kz.perpavbek.collab.documentservice.dto.response.DocumentResponse;
 import kz.perpavbek.collab.documentservice.entity.Document;
 import kz.perpavbek.collab.documentservice.enums.Role;
+import kz.perpavbek.collab.documentservice.exception.AccessDeniedException;
+import kz.perpavbek.collab.documentservice.exception.NotFoundException;
 import kz.perpavbek.collab.documentservice.mapper.DocumentMapper;
 import kz.perpavbek.collab.documentservice.repository.DocumentRepository;
-import kz.perpavbek.collab.documentservice.exception.AccessDeniedException;
 import kz.perpavbek.collab.documentservice.security.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ class DocumentServiceTest {
     private DocumentMapper documentMapper;
 
     @Mock
-    private DocumentAccessService accessService;
+    private DocumentAccessService documentAccessService;
 
     @Mock
     private UserValidationService userValidationService;
@@ -89,21 +90,24 @@ class DocumentServiceTest {
     @Test
     void getDocument_success() {
         Document doc = Document.builder().id(documentId).build();
-        when(accessService.getDocumentOrThrow(documentId)).thenReturn(doc);
-        doNothing().when(accessService).checkPermission(doc, Role.EDITOR, Role.VIEWER);
+
+        when(documentRepository.findById(documentId)).thenReturn(Optional.of(doc));
+        doNothing().when(documentAccessService).checkPermission(doc, Role.EDITOR, Role.VIEWER);
         when(documentMapper.toResponse(doc)).thenReturn(new DocumentResponse());
 
         DocumentResponse response = documentService.getDocument(documentId);
 
         assertNotNull(response);
-        verify(accessService).checkPermission(doc, Role.EDITOR, Role.VIEWER);
+        verify(documentAccessService).checkPermission(doc, Role.EDITOR, Role.VIEWER);
     }
 
     @Test
     void getDocument_accessDenied() {
         Document doc = Document.builder().id(documentId).build();
-        when(accessService.getDocumentOrThrow(documentId)).thenReturn(doc);
-        doThrow(AccessDeniedException.class).when(accessService).checkPermission(doc, Role.EDITOR, Role.VIEWER);
+
+        when(documentRepository.findById(documentId)).thenReturn(Optional.of(doc));
+        doThrow(AccessDeniedException.class)
+                .when(documentAccessService).checkPermission(doc, Role.EDITOR, Role.VIEWER);
 
         assertThrows(AccessDeniedException.class, () -> documentService.getDocument(documentId));
     }
@@ -115,8 +119,8 @@ class DocumentServiceTest {
         request.setCollaboratorIds(List.of(collaboratorId));
 
         Document doc = Document.builder().id(documentId).collaborators(new ArrayList<>()).build();
-        when(accessService.getDocumentOrThrow(documentId)).thenReturn(doc);
-        doNothing().when(accessService).checkPermission(doc, Role.EDITOR);
+        when(documentRepository.findById(documentId)).thenReturn(Optional.of(doc));
+        doNothing().when(documentAccessService).checkPermission(doc, Role.EDITOR);
         doNothing().when(userValidationService).validateUsers(request.getCollaboratorIds());
 
         when(documentRepository.save(doc)).thenReturn(doc);
@@ -133,13 +137,13 @@ class DocumentServiceTest {
 
     @Test
     void deleteDocument_shouldCallVersionControlAndDeleteDocument() {
-        UUID documentId = UUID.randomUUID();
         Document document = Document.builder().id(documentId).ownerId(ownerId).build();
 
-        when(accessService.getDocumentOrThrow(documentId)).thenReturn(document);
+        when(documentRepository.findById(documentId)).thenReturn(Optional.of(document));
 
         documentService.deleteDocument(documentId);
 
+        verify(documentAccessService).checkPermission(document, Role.OWNER);
         verify(versionControlClient).deleteDocumentVersions(documentId);
         verify(documentRepository).delete(document);
     }
@@ -158,5 +162,12 @@ class DocumentServiceTest {
         Page<DocumentResponse> responsePage = documentService.getDocumentsForCurrentUser(0, 10);
 
         assertEquals(1, responsePage.getTotalElements());
+    }
+
+    @Test
+    void getDocumentOrThrow_notFound_shouldThrow() {
+        when(documentRepository.findById(documentId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> documentService.getDocumentOrThrow(documentId));
     }
 }

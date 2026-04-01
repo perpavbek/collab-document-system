@@ -2,6 +2,7 @@ package kz.perpavbek.collab.versioncontrolservice.controller;
 
 import jakarta.validation.Valid;
 import kz.perpavbek.collab.versioncontrolservice.dto.request.EditOperationRequest;
+import kz.perpavbek.collab.versioncontrolservice.dto.request.RollbackRequest;
 import kz.perpavbek.collab.versioncontrolservice.dto.response.EditOperationResponse;
 import kz.perpavbek.collab.versioncontrolservice.service.VersionService;
 import lombok.RequiredArgsConstructor;
@@ -32,5 +33,11 @@ public class InternalController {
         versionService.deleteDocumentHistory(documentId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/rollback")
+    public ResponseEntity<Void> rollback(@RequestBody RollbackRequest request) {
+        versionService.rollbackDocument(request.getDocumentId(), request.getTargetSequence());
+        return ResponseEntity.ok().build();
     }
 }
