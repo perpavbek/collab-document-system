@@ -84,6 +84,8 @@ public class DocumentService {
 
             document.getCollaborators().clear();
 
+            documentRepository.flush();
+
             document.getCollaborators().addAll(
                     request.getCollaboratorIds().stream()
                             .map(id -> createCollaborator(document, id))

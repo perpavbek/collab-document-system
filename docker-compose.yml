@@ -2,14 +2,20 @@ version: "3.9"
 
 services:
   discovery-server:
-    build: ./discovery-server
+    build:
+      context: .
+      args:
+        SERVICE: discovery-server
     ports:
       - "8761:8761"
     environment:
       SERVER_PORT: 8761
 
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      args:
+        SERVICE: api-gateway
     ports:
       - "8080:8080"
     depends_on:
@@ -21,7 +27,10 @@ services:
       FRONTEND_URL: http://localhost:5173
 
   user-service:
-    build: ./user-service
+    build:
+      context: .
+      args:
+        SERVICE: user-service
     depends_on:
       - discovery-server
       - postgres-user
@@ -34,7 +43,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
 
   document-service:
-    build: ./document-service
+    build:
+      context: .
+      args:
+        SERVICE: document-service
     depends_on:
       - discovery-server
       - postgres-document
@@ -47,7 +59,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
 
   version-control-service:
-    build: ./version-control-service
+    build:
+      context: .
+      args:
+        SERVICE: version-control-service
     depends_on:
       - discovery-server
       - postgres-version
