@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+  discovery-server:
+    build: ./discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      SERVER_PORT: 8761
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery-server
+    environment:
+      SERVER_PORT: 8080
+      DISCOVERY_URL: ${DISCOVERY_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: http://localhost:5173
+
+  user-service:
+    build: ./user-service
+    depends_on:
+      - discovery-server
+      - postgres-user
+    environment:
+      SERVER_PORT: 8081
+      DISCOVERY_URL: ${DISCOVERY_URL}
+      DB_URL: jdbc:postgresql://postgres-user:5432/users
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+
+  document-service:
+    build: ./document-service
+    depends_on:
+      - discovery-server
+      - postgres-document
+    environment:
+      SERVER_PORT: 8082
+      DISCOVERY_URL: ${DISCOVERY_URL}
+      DB_URL: jdbc:postgresql://postgres-document:5432/documents
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+
+  version-control-service:
+    build: ./version-control-service
+    depends_on:
+      - discovery-server
+      - postgres-version
+    environment:
+      SERVER_PORT: 8083
+      DISCOVERY_URL: ${DISCOVERY_URL}
+      DB_URL: jdbc:postgresql://postgres-version:5432/versions
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+
+  postgres-user:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+
+  postgres-document:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: documents
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-document-data:/var/lib/postgresql/data
+
+  postgres-version:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: versions
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-version-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-user-data:
+  postgres-document-data:
+  postgres-version-data:
