@@ -4,12 +4,14 @@ import kz.perpavbek.collab.documentservice.dto.client.OperationRequest;
 import kz.perpavbek.collab.documentservice.dto.client.OperationResponse;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentCreateRequest;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentUpdateRequest;
+import kz.perpavbek.collab.documentservice.dto.response.DocumentInvitationDetailsResponse;
 import kz.perpavbek.collab.documentservice.dto.response.DocumentResponse;
 import kz.perpavbek.collab.documentservice.dto.response.PermissionResponse;
 import kz.perpavbek.collab.documentservice.enums.OperationType;
 import kz.perpavbek.collab.documentservice.enums.Role;
 import kz.perpavbek.collab.documentservice.security.JwtUtils;
 import kz.perpavbek.collab.documentservice.service.DocumentAccessService;
+import kz.perpavbek.collab.documentservice.service.DocumentInvitationService;
 import kz.perpavbek.collab.documentservice.service.DocumentOperationService;
 import kz.perpavbek.collab.documentservice.service.DocumentService;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +38,9 @@ class DocumentControllerTest {
 
     @Mock
     private DocumentAccessService documentAccessService;
+
+    @Mock
+    private DocumentInvitationService documentInvitationService;
 
     @Mock
     private JwtUtils jwtUtils;
@@ -81,6 +86,42 @@ class DocumentControllerTest {
 
         assertNotNull(result.getBody());
         assertEquals(Role.EDITOR, result.getBody().getRole());
+    }
+
+    @Test
+    void getInvitationDetails_shouldReturnInvitationPayload() {
+        String token = UUID.randomUUID().toString();
+        DocumentInvitationDetailsResponse response = DocumentInvitationDetailsResponse.builder()
+                .documentId(documentId)
+                .documentTitle("Test Doc")
+                .ownerId(userId)
+                .build();
+
+        when(documentInvitationService.getInvitationDetails(token)).thenReturn(response);
+
+        ResponseEntity<DocumentInvitationDetailsResponse> result = documentController.getInvitationDetails(token);
+
+        assertNotNull(result.getBody());
+        assertEquals(documentId, result.getBody().getDocumentId());
+        assertEquals("Test Doc", result.getBody().getDocumentTitle());
+    }
+
+    @Test
+    void acceptInvitation_shouldReturnDocument() {
+        String token = UUID.randomUUID().toString();
+        DocumentResponse response = DocumentResponse.builder()
+                .id(documentId)
+                .title("Accepted Doc")
+                .ownerId(userId)
+                .build();
+
+        when(documentInvitationService.acceptInvitation(token)).thenReturn(response);
+
+        ResponseEntity<DocumentResponse> result = documentController.acceptInvitation(token);
+
+        assertNotNull(result.getBody());
+        assertEquals(documentId, result.getBody().getId());
+        assertEquals("Accepted Doc", result.getBody().getTitle());
     }
 
     @Test

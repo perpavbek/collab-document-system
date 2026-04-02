@@ -20,5 +20,6 @@ public class DocumentResponse {
     private LocalDateTime updatedAt;
 
     private List<DocumentCollaboratorResponse> collaborators;
+    private List<DocumentInvitationResponse> pendingInvitations;
 
 }

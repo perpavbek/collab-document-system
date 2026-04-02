@@ -6,12 +6,14 @@ import kz.perpavbek.collab.documentservice.dto.client.OperationResponse;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentCreateRequest;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentRollbackRequest;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentUpdateRequest;
+import kz.perpavbek.collab.documentservice.dto.response.DocumentInvitationDetailsResponse;
 import kz.perpavbek.collab.documentservice.dto.response.DocumentResponse;
 import kz.perpavbek.collab.documentservice.dto.response.PageResponse;
 import kz.perpavbek.collab.documentservice.dto.response.PermissionResponse;
 import kz.perpavbek.collab.documentservice.enums.Role;
 import kz.perpavbek.collab.documentservice.security.JwtUtils;
 import kz.perpavbek.collab.documentservice.service.DocumentAccessService;
+import kz.perpavbek.collab.documentservice.service.DocumentInvitationService;
 import kz.perpavbek.collab.documentservice.service.DocumentOperationService;
 import kz.perpavbek.collab.documentservice.service.DocumentService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class DocumentController {
     private final DocumentService documentService;
     private final DocumentOperationService documentOperationService;
     private final DocumentAccessService documentAccessService;
+    private final DocumentInvitationService documentInvitationService;
     private final JwtUtils jwtUtils;
 
     @PostMapping
@@ -50,6 +53,18 @@ public class DocumentController {
     public ResponseEntity<DocumentResponse> getDocument(@PathVariable UUID id) {
 
         return ResponseEntity.ok(documentService.getDocument(id));
+    }
+
+    @GetMapping("/invitations/{token}")
+    public ResponseEntity<DocumentInvitationDetailsResponse> getInvitationDetails(@PathVariable String token) {
+
+        return ResponseEntity.ok(documentInvitationService.getInvitationDetails(token));
+    }
+
+    @PostMapping("/invitations/{token}/accept")
+    public ResponseEntity<DocumentResponse> acceptInvitation(@PathVariable String token) {
+
+        return ResponseEntity.ok(documentInvitationService.acceptInvitation(token));
     }
 
     @PostMapping("/{id}/rollback")

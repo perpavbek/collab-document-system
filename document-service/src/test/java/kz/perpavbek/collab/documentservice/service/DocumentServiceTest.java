@@ -1,10 +1,12 @@
 package kz.perpavbek.collab.documentservice.service;
 
 import kz.perpavbek.collab.documentservice.client.VersionControlClient;
+import kz.perpavbek.collab.documentservice.dto.client.User;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentCreateRequest;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentUpdateRequest;
 import kz.perpavbek.collab.documentservice.dto.response.DocumentResponse;
 import kz.perpavbek.collab.documentservice.entity.Document;
+import kz.perpavbek.collab.documentservice.entity.DocumentInvitation;
 import kz.perpavbek.collab.documentservice.enums.Role;
 import kz.perpavbek.collab.documentservice.exception.AccessDeniedException;
 import kz.perpavbek.collab.documentservice.exception.NotFoundException;
@@ -42,6 +44,9 @@ class DocumentServiceTest {
     @Mock
     private JwtUtils jwtUtils;
 
+    @Mock
+    private DocumentInvitationService documentInvitationService;
+
     @InjectMocks
     private DocumentService documentService;
 
@@ -63,10 +68,16 @@ class DocumentServiceTest {
         request.setTitle("My Doc");
         request.setCollaboratorIds(List.of(collaboratorId));
 
-        when(jwtUtils.getCurrentToken()).thenReturn("token");
-        when(jwtUtils.getIdFromToken("token")).thenReturn(ownerId);
-        doNothing().when(userValidationService).validateUser(ownerId);
-        doNothing().when(userValidationService).validateUsers(List.of(collaboratorId));
+        User owner = User.builder()
+                .id(ownerId)
+                .email("owner@example.com")
+                .name("Owner")
+                .build();
+        DocumentInvitation invitation = DocumentInvitation.builder().build();
+
+        when(userValidationService.getCurrentUser()).thenReturn(owner);
+        when(documentInvitationService.synchronizeInvitations(any(Document.class), eq(List.of(collaboratorId))))
+                .thenReturn(List.of(invitation));
 
         Document doc = Document.builder()
                 .id(documentId)
@@ -84,7 +95,7 @@ class DocumentServiceTest {
 
         assertNotNull(response);
         verify(documentRepository).save(any(Document.class));
-        verify(userValidationService).validateUsers(List.of(collaboratorId));
+        verify(documentInvitationService).sendInvitationEmails(doc, List.of(invitation), owner);
     }
 
     @Test
@@ -118,10 +129,18 @@ class DocumentServiceTest {
         request.setTitle("New Title");
         request.setCollaboratorIds(List.of(collaboratorId));
 
+        User owner = User.builder()
+                .id(ownerId)
+                .email("owner@example.com")
+                .name("Owner")
+                .build();
+        DocumentInvitation invitation = DocumentInvitation.builder().build();
         Document doc = Document.builder().id(documentId).collaborators(new ArrayList<>()).build();
         when(documentRepository.findById(documentId)).thenReturn(Optional.of(doc));
         doNothing().when(documentAccessService).checkPermission(doc, Role.EDITOR);
-        doNothing().when(userValidationService).validateUsers(request.getCollaboratorIds());
+        when(userValidationService.getCurrentUser()).thenReturn(owner);
+        when(documentInvitationService.synchronizeInvitations(doc, request.getCollaboratorIds()))
+                .thenReturn(List.of(invitation));
 
         when(documentRepository.save(doc)).thenReturn(doc);
         when(documentMapper.toResponse(doc)).thenReturn(new DocumentResponse());
@@ -130,9 +149,8 @@ class DocumentServiceTest {
 
         assertNotNull(response);
         assertEquals("New Title", doc.getTitle());
-        assertEquals(1, doc.getCollaborators().size());
-        verify(userValidationService).validateUsers(request.getCollaboratorIds());
         verify(documentRepository).save(doc);
+        verify(documentInvitationService).sendInvitationEmails(doc, List.of(invitation), owner);
     }
 
     @Test

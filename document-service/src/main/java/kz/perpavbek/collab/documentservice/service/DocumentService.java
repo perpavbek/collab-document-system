@@ -2,11 +2,12 @@ package kz.perpavbek.collab.documentservice.service;
 
 import jakarta.transaction.Transactional;
 import kz.perpavbek.collab.documentservice.client.VersionControlClient;
+import kz.perpavbek.collab.documentservice.dto.client.User;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentCreateRequest;
 import kz.perpavbek.collab.documentservice.dto.request.DocumentUpdateRequest;
 import kz.perpavbek.collab.documentservice.dto.response.DocumentResponse;
 import kz.perpavbek.collab.documentservice.entity.Document;
-import kz.perpavbek.collab.documentservice.entity.DocumentCollaborator;
+import kz.perpavbek.collab.documentservice.entity.DocumentInvitation;
 import kz.perpavbek.collab.documentservice.enums.Role;
 import kz.perpavbek.collab.documentservice.exception.NotFoundException;
 import kz.perpavbek.collab.documentservice.mapper.DocumentMapper;
@@ -19,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -31,30 +34,33 @@ public class DocumentService {
     private final UserValidationService userValidationService;
     private final JwtUtils jwtUtils;
     private final VersionControlClient versionControlClient;
+    private final DocumentInvitationService documentInvitationService;
 
     @Transactional
     public DocumentResponse createDocument(DocumentCreateRequest request) {
 
-        UUID ownerId = jwtUtils.getIdFromToken(jwtUtils.getCurrentToken());
-
-        userValidationService.validateUser(ownerId);
-        userValidationService.validateUsers(request.getCollaboratorIds());
+        User currentUser = userValidationService.getCurrentUser();
+        UUID ownerId = currentUser.getId();
 
         Document document = Document.builder()
                 .title(request.getTitle())
                 .ownerId(ownerId)
+                .collaborators(new ArrayList<>())
+                .pendingInvitations(new ArrayList<>())
                 .versionSequenceNumber(1L)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        document.setCollaborators(
-                request.getCollaboratorIds().stream()
-                        .map(id -> createCollaborator(document, id))
-                        .toList()
+        List<DocumentInvitation> newInvitations = documentInvitationService.synchronizeInvitations(
+                document,
+                request.getCollaboratorIds()
         );
 
-        return documentMapper.toResponse(documentRepository.save(document));
+        Document savedDocument = documentRepository.save(document);
+        documentInvitationService.sendInvitationEmails(savedDocument, newInvitations, currentUser);
+
+        return documentMapper.toResponse(savedDocument);
     }
 
     @Transactional
@@ -80,17 +86,16 @@ public class DocumentService {
 
         if (request.getCollaboratorIds() != null) {
 
-            userValidationService.validateUsers(request.getCollaboratorIds());
-
-            document.getCollaborators().clear();
-
-            documentRepository.flush();
-
-            document.getCollaborators().addAll(
-                    request.getCollaboratorIds().stream()
-                            .map(id -> createCollaborator(document, id))
-                            .toList()
+            User currentUser = userValidationService.getCurrentUser();
+            List<DocumentInvitation> newInvitations = documentInvitationService.synchronizeInvitations(
+                    document,
+                    request.getCollaboratorIds()
             );
+
+            document.setUpdatedAt(LocalDateTime.now());
+            Document savedDocument = documentRepository.save(document);
+            documentInvitationService.sendInvitationEmails(savedDocument, newInvitations, currentUser);
+            return documentMapper.toResponse(savedDocument);
         }
 
         document.setUpdatedAt(LocalDateTime.now());
@@ -125,14 +130,5 @@ public class DocumentService {
         return documentRepository
                 .findByOwnerIdOrCollaborators_UserId(userId, userId, pageable)
                 .map(documentMapper::toResponse);
-    }
-
-    private DocumentCollaborator createCollaborator(Document doc, UUID userId) {
-        return DocumentCollaborator.builder()
-                .document(doc)
-                .userId(userId)
-                .role(Role.EDITOR)
-                .addedAt(LocalDateTime.now())
-                .build();
     }
 }
