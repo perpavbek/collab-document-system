@@ -43,7 +43,15 @@ An **API Gateway** is used to route requests between services and expose a unifi
 git clone https://github.com/perpavbek/collab-document-system.git
 cd collab-document-system
 ```
-2. Build and run the services in detached mode:
+
+2. Preparing Environment
+
+Before running the services, create a `.env` file based on the provided example:
+
+```bash
+cp .example.env .env
+```
+3. Build and run the services in detached mode:
 ```bash
 docker-compose up --build -d
 ```
