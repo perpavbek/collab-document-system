@@ -24,7 +24,7 @@ services:
       SERVER_PORT: 8080
       DISCOVERY_URL: ${DISCOVERY_URL}
       JWT_SECRET: ${JWT_SECRET}
-      FRONTEND_URL: http://localhost:5173
+      FRONTEND_URL: http://localhost:3000
 
   user-service:
     build:
@@ -73,6 +73,17 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_URL: http://localhost:8080
+        WS_URL: http://localhost:8080/documents/ws/websocket
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
 
   postgres-user:
     image: postgres:17
