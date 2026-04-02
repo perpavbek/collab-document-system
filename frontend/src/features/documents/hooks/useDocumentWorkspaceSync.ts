@@ -195,6 +195,7 @@ export const useDocumentWorkspaceSync = ({ currentUser, documentId }: UseDocumen
       const relatedUserIds = [
         documentResponse.ownerId,
         ...documentResponse.collaborators.map((entry) => entry.userId),
+        ...documentResponse.pendingInvitations.map((entry) => entry.invitedUserId),
         ...sessionsResponse.map((entry) => entry.userId),
         ...operationsResponse.map((entry) => entry.userId),
       ];

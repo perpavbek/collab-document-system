@@ -3,6 +3,7 @@ import type { PageResponse } from '../types/api';
 import type {
   CreateDocumentRequest,
   DocumentDto,
+  DocumentInvitationDetailsResponse,
   DocumentPermissionResponse,
   DocumentRollbackRequest,
   DocumentVersionResponse,
@@ -26,6 +27,16 @@ export const documentsApi = {
 
   async getById(id: string) {
     const { data } = await http.get<DocumentDto>(`/documents/${id}`);
+    return data;
+  },
+
+  async getInvitation(token: string) {
+    const { data } = await http.get<DocumentInvitationDetailsResponse>(`/documents/invitations/${token}`);
+    return data;
+  },
+
+  async acceptInvitation(token: string) {
+    const { data } = await http.post<DocumentDto>(`/documents/invitations/${token}/accept`);
     return data;
   },
 

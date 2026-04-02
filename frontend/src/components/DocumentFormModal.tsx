@@ -84,7 +84,11 @@ export const DocumentFormModal = ({
           <Input placeholder="Quarterly planning notes" size="large" />
         </Form.Item>
 
-        <Form.Item label="Collaborators" name="collaboratorIds">
+        <Form.Item
+          extra="Selected users will receive an email invitation and will appear as collaborators after accepting it."
+          label="Collaborators"
+          name="collaboratorIds"
+        >
           <UserMultiSelect excludedUserIds={excludedUserIds} seedUsers={seedUsers} />
         </Form.Item>
       </Form>

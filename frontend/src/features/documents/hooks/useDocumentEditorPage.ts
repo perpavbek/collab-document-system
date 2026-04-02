@@ -99,6 +99,7 @@ export const useDocumentEditorPage = () => {
       await hydrateParticipants([
         updatedDocument.ownerId,
         ...updatedDocument.collaborators.map((entry) => entry.userId),
+        ...updatedDocument.pendingInvitations.map((entry) => entry.invitedUserId),
       ]);
       message.success('Document settings updated');
       setSettingsOpen(false);

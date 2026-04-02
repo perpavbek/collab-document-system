@@ -87,7 +87,11 @@ export const useDocumentsPage = () => {
 
     try {
       const document = await documentsApi.create(payload);
-      message.success('Document created');
+      message.success(
+        payload.collaboratorIds.length > 0
+          ? 'Document created. Invitation emails were sent to the selected collaborators.'
+          : 'Document created',
+      );
       setModalOpen(false);
       await loadDocuments(currentPage, currentPageSize);
       navigate(`/documents/${document.id}`);

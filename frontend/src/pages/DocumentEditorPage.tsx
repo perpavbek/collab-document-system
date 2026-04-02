@@ -50,6 +50,13 @@ export const DocumentEditorPage = () => {
     return <PageLoader label="Loading document workspace" />;
   }
 
+  const settingsCollaboratorIds = Array.from(
+    new Set([
+      ...document.collaborators.map((entry) => entry.userId),
+      ...document.pendingInvitations.map((entry) => entry.invitedUserId),
+    ]),
+  );
+
   return (
     <div className="space-y-6">
       <DocumentEditorHeaderCard
@@ -91,6 +98,7 @@ export const DocumentEditorPage = () => {
         </Card>
 
         <DocumentEditorSidebar
+          canManageDocument={canManageDocument}
           document={document}
           participants={participants}
           recentOperations={recentOperations}
@@ -119,7 +127,7 @@ export const DocumentEditorPage = () => {
         excludedUserIds={currentUser ? [currentUser.id] : []}
         initialValues={{
           title: document.title,
-          collaboratorIds: document.collaborators.map((entry) => entry.userId),
+          collaboratorIds: settingsCollaboratorIds,
         }}
         mode="edit"
         open={settingsOpen}

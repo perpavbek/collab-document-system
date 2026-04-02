@@ -10,6 +10,9 @@ import { useAuthStore } from './stores/authStore';
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then((module) => ({ default: module.RegisterPage })));
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage').then((module) => ({ default: module.DocumentsPage })));
+const DocumentInvitationPage = lazy(() =>
+  import('./pages/DocumentInvitationPage').then((module) => ({ default: module.DocumentInvitationPage })),
+);
 const DocumentEditorPage = lazy(() =>
   import('./pages/DocumentEditorPage').then((module) => ({ default: module.DocumentEditorPage })),
 );
@@ -56,6 +59,7 @@ export default function App() {
         >
           <Route index element={<Navigate to="/documents" replace />} />
           <Route path="documents" element={<DocumentsPage />} />
+          <Route path="invitations/:token" element={<DocumentInvitationPage />} />
           <Route path="documents/:id" element={<DocumentEditorPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />

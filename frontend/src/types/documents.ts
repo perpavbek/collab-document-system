@@ -5,6 +5,14 @@ export interface DocumentCollaborator {
   role: DocumentRole;
 }
 
+export interface DocumentInvitation {
+  id: string;
+  invitedUserId: string;
+  invitedEmail: string;
+  role: DocumentRole;
+  createdAt: string;
+}
+
 export interface DocumentDto {
   id: string;
   title: string;
@@ -13,6 +21,7 @@ export interface DocumentDto {
   createdAt: string;
   updatedAt: string;
   collaborators: DocumentCollaborator[];
+  pendingInvitations: DocumentInvitation[];
 }
 
 export interface CreateDocumentRequest {
@@ -35,6 +44,15 @@ export interface DocumentVersionResponse {
 }
 
 export interface DocumentPermissionResponse {
+  role: DocumentRole;
+}
+
+export interface DocumentInvitationDetailsResponse {
+  documentId: string;
+  documentTitle: string;
+  ownerId: string;
+  invitedUserId: string;
+  invitedEmail: string;
   role: DocumentRole;
 }
 
